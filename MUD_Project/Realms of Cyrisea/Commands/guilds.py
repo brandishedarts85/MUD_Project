@@ -1,3 +1,4 @@
+```python
 """
 Realms of Cyrisea - Guild System
 Full guild suite:
@@ -34,6 +35,7 @@ GUILD_RANKS = [
 
 GUILDS = {}  # {guild_name: guild_data}
 
+
 def create_guild_instance(world, guild_name):
     """Create an instanced guild hall."""
 
@@ -45,7 +47,11 @@ def create_guild_instance(world, guild_name):
     hall.guild = guild_name
     hall.storage = []
     hall.stations = []
-    hall.meeting_room = world.create_room(base_vnum + 1, f"{guild_name} Council Chamber", "")
+    hall.meeting_room = world.create_room(
+        base_vnum + 1,
+        f"{guild_name} Council Chamber",
+        "",
+    )
     hall.meeting_room.guild = guild_name
     hall.meeting_room.is_guildhall = True
 
@@ -62,6 +68,7 @@ def create_guild_instance(world, guild_name):
         "events": [],
         "war_state": None,
     }
+
 
 # ---------------------------------------------------------
 # Create guild
@@ -102,6 +109,11 @@ async def do_guildcreate(player, args):
 
     await player.send(f"You create the guild {name}!")
 
+
+# ---------------------------------------------------------
+# Guild information
+# ---------------------------------------------------------
+
 async def do_guild(player, args):
     """Show guild info."""
 
@@ -114,17 +126,28 @@ async def do_guild(player, args):
     await player.send(f"\033[95mGuild: {player.guild}\033[0m")
     await player.send(f"Rank: {player.guild_rank}")
     await player.send("Members:")
+
     for m, r in guild["members"].items():
         await player.send(f" - {m} ({r})")
+
+
+# ---------------------------------------------------------
+# Guild invitations
+# ---------------------------------------------------------
 
 async def do_ginvite(player, args):
     """Invite someone to your guild."""
 
-    if not player.guild or player.guild_rank not in ["Officer", "Council", "Leader"]:
+    if not player.guild or player.guild_rank not in [
+        "Officer",
+        "Council",
+        "Leader",
+    ]:
         await player.send("You do not have permission.")
         return
 
     target = player.room.find_player(args)
+
     if not target:
         await player.send("They aren't here.")
         return
@@ -134,42 +157,81 @@ async def do_ginvite(player, args):
         return
 
     target.guild_invite = player.guild
-    await player.send(f"You invite {target.name} to join {player.guild}.")
-    await target.send(f"{player.name} invites you to join the guild {player.guild}.")
+
+    await player.send(
+        f"You invite {target.name} to join {player.guild}."
+    )
+
+    await target.send(
+        f"{player.name} invites you to join the guild {player.guild}."
+    )
+
+
+# ---------------------------------------------------------
+# Guild acceptance
+# ---------------------------------------------------------
 
 async def do_gaccept(player, args):
     """Accept a guild invite."""
 
     guild_name = getattr(player, "guild_invite", None)
+
     if not guild_name:
         await player.send("No guild invite to accept.")
         return
 
-    guild = GUILDS[guild_name]
+    guild = GUILDS.get(guild_name)
+
+    if not guild:
+        player.guild_invite = None
+        await player.send("That guild no longer exists.")
+        return
+
     guild["members"][player.name] = "Recruit"
     player.guild = guild_name
     player.guild_rank = "Recruit"
     player.guild_invite = None
 
     await player.send(f"You join the guild {guild_name}.")
+
     for m in guild["members"]:
-        await player.world.find_player_global(m).send(f"{player.name} joins the guild.")
+        if m == player.name:
+            continue
+
+        member = player.world.find_player_global(m)
+
+        if member:
+            await member.send(f"{player.name} joins the guild.")
+
+
+# ---------------------------------------------------------
+# Guild promotion
+# ---------------------------------------------------------
 
 async def do_gpromote(player, args):
     """Promote a guild member."""
 
-    if not player.guild or player.guild_rank not in ["Council", "Leader"]:
+    if not player.guild or player.guild_rank not in [
+        "Council",
+        "Leader",
+    ]:
         await player.send("You do not have permission.")
         return
 
     guild = GUILDS[player.guild]
-    target = guild["members"].get(args)
+    target_name = args.strip()
 
-    if not target:
+    if not target_name:
+        await player.send("Promote whom?")
+        return
+
+    target_rank = guild["members"].get(target_name)
+
+    if not target_rank:
         await player.send("No such guild member.")
         return
 
-    current_rank = guild["members"][args]
+    current_rank = target_rank
     idx = GUILD_RANKS.index(current_rank)
 
     if idx >= len(GUILD_RANKS) - 1:
@@ -177,9 +239,71 @@ async def do_gpromote(player, args):
         return
 
     new_rank = GUILD_RANKS[idx + 1]
-    guild["members"][args] = new_rank
+    guild["members"][target_name] = new_rank
 
-    await player.send(f"You promote {args} to {new_rank}.")
+    target = player.world.find_player_global(target_name)
+
+    if target:
+        target.guild_rank = new_rank
+        await target.send(
+            f"You have been promoted to {new_rank}."
+        )
+
+    await player.send(
+        f"You promote {target_name} to {new_rank}."
+    )
+
+
+# ---------------------------------------------------------
+# Guild storage
+# ---------------------------------------------------------
+
+async def do_gstore(player, args):
+    """Store an item in guild storage."""
+
+    if not player.guild:
+        await player.send("You are not in a guild.")
+        return
+
+    if player.guild_rank not in [
+        "Officer",
+        "Council",
+        "Leader",
+    ]:
+        await player.send(
+            "You do not have permission to store items in the guild vault."
+        )
+        return
+
+    item_name = args.strip().lower()
+
+    if not item_name:
+        await player.send("Store what?")
+        return
+
+    guild = GUILDS[player.guild]
+
+    for obj in list(player.inventory):
+        short_desc = getattr(obj, "short_desc", None)
+
+        if not short_desc:
+            short_desc = getattr(obj, "name", "")
+
+        if item_name in short_desc.lower():
+            player.inventory.remove(obj)
+            guild["storage"].append(obj)
+
+            await player.send(
+                f"You store {short_desc} in the guild vault."
+            )
+            return
+
+    await player.send("You do not have that item.")
+
+
+# ---------------------------------------------------------
+# Guild storage retrieval
+# ---------------------------------------------------------
 
 async def do_gretrieve(player, args):
     """Retrieve an item from guild storage."""
@@ -188,26 +312,49 @@ async def do_gretrieve(player, args):
         await player.send("You are not in a guild.")
         return
 
+    item_name = args.strip().lower()
+
+    if not item_name:
+        await player.send("Retrieve what?")
+        return
+
     guild = GUILDS[player.guild]
-    item_name = args.lower()
 
     for obj in list(guild["storage"]):
-        if item_name in obj.short_desc.lower():
+        short_desc = getattr(obj, "short_desc", None)
+
+        if not short_desc:
+            short_desc = getattr(obj, "name", "")
+
+        if item_name in short_desc.lower():
             guild["storage"].remove(obj)
             player.inventory.append(obj)
-            await player.send(f"You retrieve {obj.short_desc} from the guild vault.")
+
+            await player.send(
+                f"You retrieve {short_desc} from the guild vault."
+            )
             return
 
     await player.send("No such item in guild storage.")
 
+
+# ---------------------------------------------------------
+# Guild crafting stations
+# ---------------------------------------------------------
+
 async def do_ginstall(player, args):
     """Install a crafting station in the guild hall."""
 
-    if not player.guild or player.guild_rank not in ["Officer", "Council", "Leader"]:
+    if not player.guild or player.guild_rank not in [
+        "Officer",
+        "Council",
+        "Leader",
+    ]:
         await player.send("You do not have permission.")
         return
 
     room = player.room
+
     if not room.is_guildhall or room.guild != player.guild:
         await player.send("You must be in your guild hall.")
         return
@@ -215,13 +362,31 @@ async def do_ginstall(player, args):
     station_name = args.lower()
 
     for obj in list(player.inventory):
-        if obj.is_station and station_name in obj.short_desc.lower():
+        if (
+            getattr(obj, "is_station", False)
+            and station_name in getattr(
+                obj,
+                "short_desc",
+                getattr(obj, "name", ""),
+            ).lower()
+        ):
             player.inventory.remove(obj)
-            GUILDS[player.guild]["stations"].append(obj.station_type)
-            await player.send(f"You install a {obj.short_desc} in the guild hall.")
+
+            GUILDS[player.guild]["stations"].append(
+                obj.station_type
+            )
+
+            await player.send(
+                f"You install {obj.short_desc} in the guild hall."
+            )
             return
 
     await player.send("You do not have that station.")
+
+
+# ---------------------------------------------------------
+# Guild quests
+# ---------------------------------------------------------
 
 async def do_gquests(player, args):
     """List guild quests."""
@@ -237,8 +402,16 @@ async def do_gquests(player, args):
         return
 
     await player.send("\033[94mGuild Quests:\033[0m")
+
     for q in guild["quests"]:
-        await player.send(f" - {q['name']}: {q['desc']}")
+        await player.send(
+            f" - {q['name']}: {q['desc']}"
+        )
+
+
+# ---------------------------------------------------------
+# Guild events
+# ---------------------------------------------------------
 
 async def do_gevents(player, args):
     """List guild events."""
@@ -254,45 +427,113 @@ async def do_gevents(player, args):
         return
 
     await player.send("\033[95mGuild Events:\033[0m")
+
     for e in guild["events"]:
-        await player.send(f" - {e['name']}: {e['desc']}")
+        await player.send(
+            f" - {e['name']}: {e['desc']}"
+        )
+
+
+# ---------------------------------------------------------
+# Guild warfare
+# ---------------------------------------------------------
 
 async def do_gwar(player, args):
     """Declare guild war."""
 
     if not player.guild or player.guild_rank != "Leader":
-        await player.send("Only guild leaders may declare war.")
+        await player.send(
+            "Only guild leaders may declare war."
+        )
         return
 
     target_name = args.title()
+
     if target_name not in GUILDS:
         await player.send("No such guild.")
         return
 
     if target_name == player.guild:
-        await player.send("You cannot declare war on your own guild.")
+        await player.send(
+            "You cannot declare war on your own guild."
+        )
         return
 
     GUILDS[player.guild]["war_state"] = target_name
     GUILDS[target_name]["war_state"] = player.guild
 
-    await player.send(f"You declare war on {target_name}.")
+    await player.send(
+        f"You declare war on {target_name}."
+    )
+
     for m in GUILDS[target_name]["members"]:
         p = player.world.find_player_global(m)
+
         if p:
-            await p.send(f"{player.guild} has declared war on your guild!")
+            await p.send(
+                f"{player.guild} has declared war on your guild!"
+            )
+
+
+# ---------------------------------------------------------
+# Command registration
+# ---------------------------------------------------------
 
 COMMAND_DEFS = [
-    ("guildcreate", do_guildcreate, {"position": "standing", "help_category": "guilds"}),
-    ("guild",       do_guild,       {"position": "standing", "help_category": "guilds"}),
-    ("ginvite",     do_ginvite,     {"position": "standing", "help_category": "guilds"}),
-    ("gaccept",     do_gaccept,     {"position": "standing", "help_category": "guilds"}),
-    ("gpromote",    do_gpromote,    {"position": "standing", "help_category": "guilds"}),
-    ("gstore",      do_gstore,      {"position": "standing", "help_category": "guilds"}),
-    ("gretrieve",   do_gretrieve,   {"position": "standing", "help_category": "guilds"}),
-    ("ginstall",    do_ginstall,    {"position": "standing", "help_category": "guilds"}),
-    ("gquests",     do_gquests,     {"position": "standing", "help_category": "guilds"}),
-    ("gevents",     do_gevents,     {"position": "standing", "help_category": "guilds"}),
-    ("gwar",        do_gwar,        {"position": "standing", "help_category": "guilds"}),
+    (
+        "guildcreate",
+        do_guildcreate,
+        {"position": "standing", "help_category": "guilds"},
+    ),
+    (
+        "guild",
+        do_guild,
+        {"position": "standing", "help_category": "guilds"},
+    ),
+    (
+        "ginvite",
+        do_ginvite,
+        {"position": "standing", "help_category": "guilds"},
+    ),
+    (
+        "gaccept",
+        do_gaccept,
+        {"position": "standing", "help_category": "guilds"},
+    ),
+    (
+        "gpromote",
+        do_gpromote,
+        {"position": "standing", "help_category": "guilds"},
+    ),
+    (
+        "gstore",
+        do_gstore,
+        {"position": "standing", "help_category": "guilds"},
+    ),
+    (
+        "gretrieve",
+        do_gretrieve,
+        {"position": "standing", "help_category": "guilds"},
+    ),
+    (
+        "ginstall",
+        do_ginstall,
+        {"position": "standing", "help_category": "guilds"},
+    ),
+    (
+        "gquests",
+        do_gquests,
+        {"position": "standing", "help_category": "guilds"},
+    ),
+    (
+        "gevents",
+        do_gevents,
+        {"position": "standing", "help_category": "guilds"},
+    ),
+    (
+        "gwar",
+        do_gwar,
+        {"position": "standing", "help_category": "guilds"},
+    ),
 ]
-
+```
