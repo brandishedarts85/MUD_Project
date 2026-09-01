@@ -1,0 +1,15 @@
+PVP MODES
+
+PEACEFUL
+  - Cannot attack players.
+  - Cannot be attacked by players.
+  - Reduced rewards in some deadly areas.
+  - Can switch to deadly via special NPCs.
+
+DEADLY
+  - Full PvP enabled.
+  - Can attack and be attacked.
+  - Higher rewards in deadly zones.
+  - Death penalties apply.
+
+Deadly mode is permanent once chosen.

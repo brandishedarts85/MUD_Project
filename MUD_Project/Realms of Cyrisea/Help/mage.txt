@@ -1,0 +1,14 @@
+MAGE
+
+Role: Arcane spellcaster
+Bonuses: +3 ARC
+Starting Items: Basic spell focus
+
+Mages wield elemental and arcane forces to devastate enemies from afar.
+Their power scales heavily with arcana, making them fragile but deadly.
+
+Recommended Builds:
+  frail – +ARC synergy
+
+Flavor:
+“Where their thoughts wander, reality bends.”

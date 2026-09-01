@@ -1,0 +1,11 @@
+CORPSES
+
+Corpses remain in the world for a limited time.
+
+  - They decay gradually.
+  - They may contain items.
+  - They appear in room descriptions.
+  - They can be looted.
+  - They vanish when fully decayed.
+
+Deadly corpses may contain PvP loot.

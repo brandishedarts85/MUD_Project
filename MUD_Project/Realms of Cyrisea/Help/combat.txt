@@ -1,0 +1,15 @@
+COMBAT
+
+Combat is turn-based and influenced by:
+
+  - Might (MIG)
+  - Finesse (FIN)
+  - Vitality (VIT)
+  - Arcana (ARC)
+  - Spirit (SPI)
+  - Presence (PRE)
+
+Hostility timers track aggression.
+Deadly characters may engage in PvP combat.
+
+Use ATTACK <target> to begin combat.

@@ -1,0 +1,11 @@
+DEATH
+
+When you die:
+
+  - You leave behind a corpse.
+  - You suffer durability penalties.
+  - You gain fatigue.
+  - You respawn in your racial starting zone.
+  - Your corpse may contain items.
+
+Deadly characters may lose more durability and face harsher penalties.
