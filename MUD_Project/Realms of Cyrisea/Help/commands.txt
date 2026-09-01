@@ -1,0 +1,18 @@
+COMMANDS
+
+Common commands include:
+
+  help
+  look
+  inventory
+  wear
+  remove
+  get
+  drop
+  attack
+  flee
+  recall
+  say
+  emote
+
+Type HELP <command> for details.
