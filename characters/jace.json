@@ -1,0 +1,41 @@
+{
+  "name": "Jace",
+  "race": "human",
+  "class": "warrior",
+  "appearance": {
+    "skin": "pale",
+    "hair": "black",
+    "eyes": "brown",
+    "height_cm": 172.7,
+    "weight_kg": 72.6,
+    "build": "average"
+  },
+  "stats": {
+    "level": 1,
+    "hp": 100,
+    "max_hp": 100,
+    "mana": 100,
+    "max_mana": 100,
+    "stamina": 100,
+    "max_stamina": 100,
+    "MIG": 11,
+    "FIN": 8,
+    "VIT": 8,
+    "ARC": 7,
+    "SPI": 10,
+    "PRE": 6
+  },
+  "inventory": [],
+  "gold": 0,
+  "exp": 0,
+  "favor": 0,
+  "is_peaceful": false,
+  "is_deadly": true,
+  "durability_penalty": 0,
+  "fatigue": 0,
+  "last_death_time": null,
+  "last_corpse": null,
+  "location": 1,
+  "human_adaptability": true,
+  "human_extra_skill_chances": 0
+}

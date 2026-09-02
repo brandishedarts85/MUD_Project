@@ -1,0 +1,15 @@
+RANGER
+
+Role: Agile skirmisher and scout
+Bonuses: +2 FIN, +1 PRE
+Starting Items: Basic bow or light weapon
+
+Rangers use finesse, perception, and mobility to strike precisely and
+avoid danger. They excel at ranged combat, tracking, and ambushes.
+
+Recommended Builds:
+  frail    – hybrid ARC synergy
+  average  – balanced performance
+
+Flavor:
+“Silent steps, sharp eyes, swift arrows.”

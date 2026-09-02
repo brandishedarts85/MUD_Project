@@ -1,0 +1,15 @@
+{
+  "username": "testplayer",
+  "password_hash": "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5",
+  "characters": [
+    "Jace"
+  ],
+  "preferences": {
+    "units": "imperial",
+    "time_format": "12",
+    "color": true,
+    "room_descriptions": "normal",
+    "combat_messages": "normal",
+    "prompt_style": "classic"
+  }
+}
